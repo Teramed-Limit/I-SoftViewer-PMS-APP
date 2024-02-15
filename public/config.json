@@ -1,0 +1,6 @@
+{
+  "ip_address": "https://localhost:7010/api",
+  "date_format": "MMM dd yyyy",
+  "datetime_format": "MMM dd yyyy HH:mm",
+  "ers_app": "http://localhost:3000"
+}

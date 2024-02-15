@@ -1,0 +1,20 @@
+/* 增加時段格子的高度 */
+.rbc-timeslot-group {
+    min-height: 100px; /* 時段高度，根據需要調整 */
+    height: auto;
+}
+
+.rbc-agenda-date-cell {
+    background-color: #F9F9F9;
+    color: rgba(0, 0, 0, 0.87);
+    border: 1px solid #DDD;
+}
+
+.rbc-day-slot .rbc-event {
+    border: 1px solid #F9F9F9;
+    color: #000;
+    border-radius: 5px;
+    box-shadow: none;
+    cursor: pointer;
+}
+

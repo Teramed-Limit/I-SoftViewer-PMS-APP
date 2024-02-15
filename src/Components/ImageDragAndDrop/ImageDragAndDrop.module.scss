@@ -1,0 +1,22 @@
+.floatWrapperTopRight {
+    top: 2px;
+    right: 2px;
+    position: absolute !important;
+    z-index: 2;
+}
+
+.container {
+    width: 100%; /* 設置容器寬度為100% */
+    height: 100vh; /* 設置容器高度為視窗高度 */
+    display: flex; /* 使用彈性盒模型 */
+    justify-content: center; /* 水平置中 */
+    align-items: center; /* 垂直置中 */
+    overflow: hidden; /* 隱藏超出容器的部分 */
+}
+
+
+.responsiveImg {
+    max-width: 100%; /* 最大寬度限制為容器的100% */
+    max-height: 100%; /* 最大高度限制為容器的100% */
+    object-fit: contain; /* 保持圖片的比例，確保圖片完全顯示 */
+}
