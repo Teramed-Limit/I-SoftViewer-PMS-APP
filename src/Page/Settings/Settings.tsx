@@ -6,6 +6,7 @@ import TabPanel from '../../Components/TabPanel/TabPanel';
 import CenterDoctorSetting from '../../Containers/CenterDoctorSetting/CenterDoctorSetting';
 import CodeListSetting from '../../Containers/CodeListSetting/CodeListSetting';
 import ExamItemSetting from '../../Containers/ExamItemSetting/ExamItemSetting';
+import PricingRuleSetting from '../../Containers/PricingRuleSetting/PricingRuleSetting';
 
 function Settings() {
 	const [value, setValue] = React.useState(0);
@@ -21,6 +22,7 @@ function Settings() {
 					<Tab label="CodeList" />
 					<Tab label="Unit / Doctor" />
 					<Tab label="Exam Item" />
+					<Tab label="Pricing Rule" />
 				</Tabs>
 			</Stack>
 			<TabPanel value={value} direction="row" index={0}>
@@ -31,6 +33,9 @@ function Settings() {
 			</TabPanel>
 			<TabPanel value={value} direction="row" index={2}>
 				<ExamItemSetting />
+			</TabPanel>
+			<TabPanel value={value} direction="row" index={3}>
+				<PricingRuleSetting />
 			</TabPanel>
 		</Stack>
 	);

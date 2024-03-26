@@ -3,14 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 
 import FormEditorV2 from '../../Components/FormEditorV2/FormEditorV2.tsx';
 import { define } from '../../constant/setting-define.tsx';
 import useHttpRequest from '../../hooks/useHttpRequest.ts';
 import { ExamItemEntity } from '../../interface/exam-item.ts';
 import { RegistrationFormData } from '../../interface/registration.ts';
+import { atomCodeList } from '../../recoil/atoms/codeList.ts';
 import { atomSite } from '../../recoil/atoms/site.ts';
+import CodeListService from '../../services/CodeListService.ts';
 import BillingInfo from '../BillingInfo/BillingInfo.tsx';
 import ExamAttachment from '../ExamAttachment/ExamAttachment.tsx';
 import ExamItemList from '../ExamItemList/ExamItemList.tsx';
@@ -22,6 +24,7 @@ interface Props {
 
 function RegistrationForm({ children }: Props) {
 	const site = useRecoilValue(atomSite);
+	const setCodeListMap = useSetRecoilState(atomCodeList);
 	// 偵測 modality 變動，取得對應的 examItemOptions
 	const { sendRequest } = useHttpRequest<ExamItemEntity[]>();
 
@@ -40,6 +43,11 @@ function RegistrationForm({ children }: Props) {
 					if (data.length === 0) setValue('examItems', []);
 					if (data.some((x) => x.modality !== watchModality)) setValue('examItems', []);
 					setExamItemOption(data);
+					CodeListService.addCodeList('examItem', data);
+					setCodeListMap((oldCodeListMap) => ({
+						...oldCodeListMap,
+						examItem: data,
+					}));
 				},
 				showNotification: false,
 			});

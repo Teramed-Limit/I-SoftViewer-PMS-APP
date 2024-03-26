@@ -99,80 +99,63 @@ export const gridDefine = {
 	accountingCredit: {
 		colDef: [
 			{
-				field: 'patientId',
-				headerName: 'Patient Id',
+				field: 'itemId',
+				headerName: 'itemId',
 				headerCheckboxSelection: false,
 				checkboxSelection: false,
 				filter: 'agTextColumnFilter',
-				floatingFilter: true,
+				hide: true,
 			},
 			{
-				field: 'patientName',
-				headerName: 'Patient Name',
+				field: 'itemName',
+				headerName: 'Item Name',
 				headerCheckboxSelection: false,
 				checkboxSelection: false,
 				filter: 'agTextColumnFilter',
-				floatingFilter: true,
 			},
 			{
-				field: 'studyDate',
-				headerName: 'Study Date',
-				headerCheckboxSelection: false,
-				checkboxSelection: false,
-				width: 120,
-				valueFormatter: (params: ValueFormatterParams) => {
-					if (params?.value) {
-						return convertToDate(new Date(params.value), EnvService.getDateFormat());
-					}
-				},
-			},
-			{
-				field: 'accessionNumber',
-				headerName: 'Accession No.',
+				field: 'numberOfItem',
+				headerName: 'Number of Item',
 				headerCheckboxSelection: false,
 				checkboxSelection: false,
 				filter: 'agTextColumnFilter',
-				floatingFilter: true,
 			},
 			{
-				field: 'modality',
-				headerName: 'Modality',
+				field: 'calculatePaymentType',
+				headerName: 'Calculate Type',
 				headerCheckboxSelection: false,
 				checkboxSelection: false,
 				filter: 'agTextColumnFilter',
-				width: 120,
-				floatingFilter: true,
 			},
 			{
-				field: 'referringPhysician',
-				headerName: 'Referring Physician',
+				field: 'price',
+				headerName: 'Item Price',
 				headerCheckboxSelection: false,
 				checkboxSelection: false,
-				floatingFilter: true,
 				filter: 'agTextColumnFilter',
-				floatingFilterComponent: SelectionFilterCell,
 			},
 			{
-				field: 'reportingPhysician',
-				headerName: 'Reporting Physician',
-				headerCheckboxSelection: true,
-				checkboxSelection: true,
-				floatingFilter: true,
-				filter: 'agTextColumnFilter',
-				floatingFilterComponent: SelectionFilterCell,
-				pinned: 'left',
-			},
-			{
-				field: 'performingPhysician',
-				headerName: 'Performing Physician',
+				field: 'numberOfItemJobs',
+				headerName: 'Number Of Item Jobs',
 				headerCheckboxSelection: false,
 				checkboxSelection: false,
-				floatingFilter: true,
 				filter: 'agTextColumnFilter',
-				floatingFilterComponent: SelectionFilterCell,
-				pinned: 'left',
 			},
-			{ field: 'studyInstanceUID', headerName: 'StudyInstanceUID', hide: true },
+
+			{
+				field: 'calculateValue',
+				headerName: 'Calculate Value',
+				headerCheckboxSelection: false,
+				checkboxSelection: false,
+				filter: 'agTextColumnFilter',
+			},
+			{
+				field: 'payment',
+				headerName: 'Payment',
+				headerCheckboxSelection: false,
+				checkboxSelection: false,
+				filter: 'agTextColumnFilter',
+			},
 		] as ColDef[],
 	},
 	accountingInvoice: {
@@ -538,6 +521,41 @@ export const gridDefine = {
 			},
 		] as ColDef[],
 	},
+	pricingRule: {
+		colDef: [
+			{
+				field: 'ruleId',
+				headerName: 'ruleId',
+				hide: true,
+			},
+			{
+				field: 'examItemName',
+				headerName: 'Exam Item',
+				width: 200,
+				flex: 1,
+			},
+			{
+				field: 'item',
+				headerName: 'Job Type',
+				width: 200,
+			},
+			{
+				field: 'byType',
+				headerName: 'Calculate by Exam Item',
+				width: 200,
+			},
+			{
+				field: 'valueString',
+				headerName: 'Calculate Value',
+				width: 200,
+			},
+			{
+				field: 'isCommonPrice',
+				headerName: 'Is Common Price',
+				width: 200,
+			},
+		] as ColDef[],
+	},
 };
 
 export const define = {
@@ -790,7 +808,7 @@ export const define = {
 						type: 'AutoCompleteSelect',
 						optionSource: {
 							type: 'customHttp',
-							source: '/account/codeList?joinText=Title^DoctorEName&filter=Title=Dr.',
+							source: '/account/codeList?joinText=Title^DoctorEName',
 							key: 'value',
 							labelKey: 'label',
 						},
@@ -801,7 +819,7 @@ export const define = {
 						type: 'AutoCompleteSelect',
 						optionSource: {
 							type: 'customHttp',
-							source: '/account/codeList?joinText=Title^DoctorEName&filter=Title=Sonographer',
+							source: '/account/codeList?joinText=Title^DoctorEName',
 							key: 'value',
 							labelKey: 'label',
 						},
@@ -1004,6 +1022,65 @@ export const define = {
 							key: 'siteId',
 							labelKey: 'siteName',
 						},
+					},
+				],
+			},
+		],
+	} as FormEditorDef,
+	pricingRule: {
+		direction: 'column',
+		sections: [
+			{
+				id: 'pricingRule',
+				label: 'Pricing Rule',
+				direction: 'column',
+				flex: '1 1 auto',
+				fields: [
+					{
+						id: 'examItemId',
+						label: 'Exam Item',
+						type: FormFieldEditorType.AutoCompleteSelect,
+						optionSource: {
+							type: 'customHttp',
+							source: '/examItem/query',
+							key: 'itemId',
+							labelKey: 'itemName',
+						},
+					},
+					{
+						id: 'item',
+						label: 'Job Type',
+						type: FormFieldEditorType.SingleSelect,
+						optionSource: {
+							type: 'static',
+							source: 'pricingPaymentJobType',
+							key: 'value',
+							labelKey: 'label',
+						},
+						validate: { required: 'Field is required' },
+					},
+					{
+						id: 'byType',
+						label: 'Calculate by Exam Item',
+						type: FormFieldEditorType.SingleSelect,
+						optionSource: {
+							type: 'static',
+							source: 'calculateByExamType',
+							key: 'value',
+							labelKey: 'label',
+						},
+						validate: { required: 'Field is required' },
+					},
+					{
+						id: 'value',
+						label: 'Value',
+						type: FormFieldEditorType.Number,
+						validate: { required: 'Field is required' },
+					},
+					{
+						id: 'isCommonPrice',
+						label: 'Is Common Price',
+						type: FormFieldEditorType.Checkbox,
 					},
 				],
 			},

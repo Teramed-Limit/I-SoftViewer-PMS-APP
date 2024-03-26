@@ -146,7 +146,10 @@ function GridTableEditor<T>({
 					onSuccess: (insertedData: any) => {
 						// 有些Table是自己產生的Key，GUID或者是自動遞增的數字，這時候要把後端回傳的資料更新到前端
 						if (insertedData) {
-							gridApi?.current?.applyTransaction({ add: [insertedData], addIndex: 0 });
+							gridApi?.current?.applyTransaction({
+								add: [insertedData],
+								addIndex: 0,
+							});
 						}
 						// 沒有的話，直接把前端的資料更新到前端
 						else {
@@ -163,8 +166,18 @@ function GridTableEditor<T>({
 					url: `/${apiPath}/${data[identityId]}`, // API路徑
 					body: data,
 					method: 'put', // 請求方法
-					onSuccess: () => {
-						gridApi?.current?.applyTransaction({ update: [data] });
+					onSuccess: (updateData) => {
+						// 有些Table是自己產生的Key，GUID或者是自動遞增的數字，這時候要把後端回傳的資料更新到前端
+						if (updateData) {
+							gridApi?.current?.applyTransaction({
+								update: [updateData],
+								addIndex: 0,
+							});
+						}
+						// 沒有的話，直接把前端的資料更新到前端
+						else {
+							gridApi?.current?.applyTransaction({ update: [data] });
+						}
 						updateCallBack?.();
 					},
 				});

@@ -13,7 +13,7 @@ function RegistrationQuery() {
 
 	useEffect(() => {
 		sendRequest({
-			url: '/registration',
+			url: '/registration/query/day/3650',
 			method: 'get',
 			onSuccess: (data) => {
 				setRegistrationList(data);

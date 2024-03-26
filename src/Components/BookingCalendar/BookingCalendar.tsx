@@ -95,6 +95,11 @@ function BookingCalendar() {
 		};
 	};
 
+	// Handler for date change to update the displayed events
+	// const onNavigate = (newDate: Date, view: View, action: NavigateAction) => {
+	// console.log(newDate, view, action);
+	// };
+
 	// 預設日期和時間
 	const { defaultDate, scrollToTime } = useMemo(
 		() => ({
@@ -247,6 +252,7 @@ function BookingCalendar() {
 				onEventResize={onEventResize}
 				onDoubleClickEvent={handleSelectEvent}
 				onSelectSlot={onOpenBookingEditor}
+				// onNavigate={onNavigate}
 				drilldownView="agenda"
 				resizable
 				selectable

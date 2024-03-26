@@ -1,12 +1,10 @@
 import React from 'react';
 
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import ReceiptIcon from '@mui/icons-material/Receipt';
 import { Stack, Tab, Tabs } from '@mui/material';
 
 import TabPanel from '../../Components/TabPanel/TabPanel';
-import BillToClinicDoctor from '../../Containers/BillToClinicDoctor/BillToClinicDoctor';
 import BillToReferralDoctor from '../../Containers/BillToReferralDoctor/BillToReferralDoctor';
+import PayToClinicDoctor from '../../Containers/PayToClinicDoctor/PayToClinicDoctor.tsx';
 
 function Accounting() {
 	const [value, setValue] = React.useState(0);
@@ -21,18 +19,18 @@ function Accounting() {
 				<Tabs value={value} onChange={handleChange}>
 					<Tab
 						iconPosition="start"
-						icon={<AttachMoneyIcon fontSize="large" />}
+						// icon={<AttachMoneyIcon fontSize="small" />}
 						label="Credit by Clinic Doctor"
 					/>
 					<Tab
 						iconPosition="start"
-						icon={<ReceiptIcon fontSize="large" />}
+						// icon={<ReceiptIcon fontSize="small" />}
 						label="Bill To Refering Doctor / Unit"
 					/>
 				</Tabs>
 			</Stack>
 			<TabPanel value={value} direction="row" index={0}>
-				<BillToClinicDoctor />
+				<PayToClinicDoctor />
 			</TabPanel>
 			<TabPanel value={value} direction="row" index={1}>
 				<BillToReferralDoctor />

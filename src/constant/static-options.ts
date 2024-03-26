@@ -28,10 +28,22 @@ const paymentMethod = [
 	{ value: 'other', label: 'Other' },
 ];
 
+const calculateByExamType = [
+	{ value: 'Price', label: 'Price' },
+	{ value: 'Job', label: 'Job' },
+];
+
+const pricingPaymentJobType = [
+	{ value: 'Reporting', label: 'Reporting' },
+	{ value: 'Scanning', label: 'Scanning' },
+];
+
 export const staticOptionType = {
 	modality,
 	room,
 	sex,
 	payerType,
 	paymentMethod,
+	calculateByExamType,
+	pricingPaymentJobType,
 };

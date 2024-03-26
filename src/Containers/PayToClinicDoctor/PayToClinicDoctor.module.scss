@@ -1,0 +1,12 @@
+.section {
+    display: flex;
+    align-items: center;
+
+    &:before {
+        content: '';
+        width: 8px;
+        height: 24px;
+        margin-right: 4px;
+        background-color: #71d2de;
+    }
+}

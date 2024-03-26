@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import { Box, Button, Stack } from '@mui/material';
+import { Autocomplete, Box, Button, Stack, TextField } from '@mui/material';
+import Typography from '@mui/material/Typography';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ICellRendererParams } from 'ag-grid-community';
@@ -15,22 +16,31 @@ import GridTable from '../../Components/GridTable/GridTable';
 import { gridDefine } from '../../constant/setting-define';
 import useHttpRequest from '../../hooks/useHttpRequest.ts';
 import { useModal } from '../../hooks/useModal.ts';
+import { CodeList } from '../../interface/code-list.ts';
 import { MessageType } from '../../interface/notification.ts';
+import { Payment, PaymentReport } from '../../interface/payment-report.ts';
+import { atomCodeList } from '../../recoil/atoms/codeList.ts';
 import { atomNotification } from '../../recoil/atoms/notification.ts';
+import CodeListService from '../../services/CodeListService.ts';
 import EnvService from '../../services/EnvService.ts';
+import classes from './PayToClinicDoctor.module.scss';
 
-function BillToClinicDoctor() {
+function PayToClinicDoctor() {
 	const { open, setOpen, onModalClose } = useModal({});
-	const {
-		open: openExamItemDetails,
-		setOpen: setOpenExamItemDetails,
-		onModalClose: onExamItemDetailsModalClose,
-	} = useModal({});
+	// const {
+	// 	open: openExamItemDetails,
+	// 	setOpen: setOpenExamItemDetails,
+	// 	onModalClose: onExamItemDetailsModalClose,
+	// } = useModal({});
 	const setNotification = useSetRecoilState(atomNotification);
-	const { sendRequest } = useHttpRequest<any[]>();
-	const [rowData, setRowData] = React.useState<any[]>([]);
-	const [selectedExamItems, setSelectedExamItems] = React.useState<any[]>([]);
+	const setCodeListMap = useSetRecoilState(atomCodeList);
+	const { sendRequest } = useHttpRequest<PaymentReport>();
+	const { sendRequest: sendAccountRequest } = useHttpRequest<CodeList[]>();
+	const [rowDataOfReporting, setRowDataOfReporting] = React.useState<Payment[]>([]);
+	const [rowDataOfScanning, setRowDataOfScanning] = React.useState<Payment[]>([]);
 	const [dateRange, setDateRange] = React.useState({ startDate: new Date(), endDate: new Date() });
+	const [payeeList, setPayeeList] = React.useState<CodeList[]>([]);
+	const [selectedPayee, setPayee] = React.useState<string>('');
 	const gridApi = useRef<GridApi<any> | null>(null);
 
 	const handleDateQuery = (days) => {
@@ -42,12 +52,20 @@ function BillToClinicDoctor() {
 
 	// 提取數據的函數
 	const fetchData = (startDate, endDate) => {
+		if (!selectedPayee) {
+			setNotification({
+				messageType: MessageType.Warning,
+				message: 'Please select the payee.',
+			});
+			return;
+		}
 		sendRequest({
-			url: '/accounting/all',
+			url: '/accounting/payment',
 			method: 'get',
-			body: { startDate, endDate },
+			body: { startDate, endDate, payee: selectedPayee },
 			onSuccess: (data) => {
-				setRowData(data);
+				setRowDataOfReporting(data.reportingPayments);
+				setRowDataOfScanning(data.scanningPayments);
 				gridApi.current?.deselectAll();
 			},
 			onError: () => {},
@@ -119,14 +137,30 @@ function BillToClinicDoctor() {
 				label: 'View Details',
 				onClick: (params: ICellRendererParams<any>) => {
 					if (params.data) {
-						setOpenExamItemDetails(true);
-						setSelectedExamItems(params.data.examItems);
+						// setOpenExamItemDetails(true);
+						// setSelectedExamItems(params.data.examItems);
 					}
 				},
 			},
 		},
 		gridDefine.accountingCredit.colDef,
 	);
+
+	useEffect(() => {
+		sendAccountRequest({
+			url: '/account/codeList?joinText=Title^DoctorEName',
+			method: 'get',
+			onSuccess: (data) => {
+				setPayeeList(data);
+				CodeListService.addCodeList('account', data);
+				setCodeListMap((oldCodeListMap) => ({
+					...oldCodeListMap,
+					account: data,
+				}));
+			},
+			showNotification: false,
+		});
+	}, [sendAccountRequest, setCodeListMap]);
 
 	return (
 		<Stack style={{ width: '100%' }} direction="column" spacing={1}>
@@ -147,6 +181,27 @@ function BillToClinicDoctor() {
 				</Stack>
 				<Stack direction="row" spacing={1}>
 					<LocalizationProvider dateAdapter={AdapterDateFns}>
+						<Autocomplete
+							options={payeeList}
+							getOptionLabel={(option) => option.label}
+							getOptionKey={(option) => option.value}
+							style={{ width: 300 }}
+							value={payeeList.find((option) => option.value === selectedPayee) || null}
+							onChange={(_, newValue) => {
+								setPayee(newValue?.value || '');
+							}}
+							componentsProps={{
+								paper: {
+									style: {
+										width: 'fit-content',
+										whiteSpace: 'nowrap',
+										overflow: 'hidden',
+										textOverflow: 'ellipsis',
+									},
+								},
+							}}
+							renderInput={(params) => <TextField {...params} label="Payee" variant="outlined" />}
+						/>
 						<DatePicker
 							label="Start Date"
 							format={EnvService.getDateFormat()}
@@ -165,63 +220,59 @@ function BillToClinicDoctor() {
 					</Button>
 				</Stack>
 			</Stack>
-			<div style={{ flex: '2 1 auto', width: '100%' }} id="grid1" className="ag-theme-quartz">
+			<Typography className={classes.section} variant="h6" component="div">
+				Reporting Payment
+			</Typography>
+			<div style={{ flex: '1 1 auto', width: '100%' }} id="grid1" className="ag-theme-quartz">
 				<GridTable
 					rowSelection="multiple"
 					columnDefs={newGridDefine}
-					rowData={rowData}
+					rowData={rowDataOfReporting}
 					checkboxSelect
 					onSelectionChanged={onSelectionChanged}
 					gridReady={(params) => (gridApi.current = params.api)}
 				/>
 			</div>
+			<Typography className={classes.section} variant="h6" component="div">
+				Scanning Payment
+			</Typography>
 			<div style={{ flex: '1 1 auto', width: '100%' }} id="grid2" className="ag-theme-quartz">
 				<GridTable
-					rowSelection="single"
-					columnDefs={gridDefine.payslipDetails.colDef}
-					rowData={selectedExamItems}
+					rowSelection="multiple"
+					columnDefs={newGridDefine}
+					rowData={rowDataOfScanning}
+					checkboxSelect
+					onSelectionChanged={onSelectionChanged}
+					gridReady={(params) => (gridApi.current = params.api)}
 				/>
 			</div>
-
 			<Stack justifyContent="end" alignItems="center" direction="row" spacing={1}>
 				<Box component="span" sx={{ textAlign: 'end' }}>
 					<Button
 						sx={{ flex: '1 1 auto' }}
 						variant="contained"
-						color="success"
 						startIcon={<ReceiptIcon />}
 						onClick={() => genPayslipPDF('reportingPhysician')}
 					>
-						Reporting Phy. Payslip
-					</Button>
-				</Box>
-				<Box component="span" sx={{ textAlign: 'end' }}>
-					<Button
-						sx={{ flex: '1 1 auto' }}
-						color="secondary"
-						variant="contained"
-						startIcon={<ReceiptIcon />}
-						onClick={() => genPayslipPDF('performingPhysician')}
-					>
-						Performing Phy. Payslip
+						Print Payslip
 					</Button>
 				</Box>
 			</Stack>
-			<CustomModal
-				label="Exam Item Details"
-				height="50%"
-				width="90%"
-				open={openExamItemDetails}
-				onModalClose={() => onExamItemDetailsModalClose()}
-			>
-				<div style={{ flex: '1 1 auto', width: '100%' }} id="grid2" className="ag-theme-quartz">
-					<GridTable
-						rowSelection="single"
-						columnDefs={gridDefine.examItemDetails.colDef}
-						rowData={selectedExamItems}
-					/>
-				</div>
-			</CustomModal>
+			{/* <CustomModal */}
+			{/*	label="Exam Item Details" */}
+			{/*	height="50%" */}
+			{/*	width="90%" */}
+			{/*	open={openExamItemDetails} */}
+			{/*	onModalClose={() => onExamItemDetailsModalClose()} */}
+			{/* > */}
+			{/*	<div style={{ flex: '1 1 auto', width: '100%' }} id="grid2" className="ag-theme-quartz"> */}
+			{/*		<GridTable */}
+			{/*			rowSelection="single" */}
+			{/*			columnDefs={gridDefine.examItemDetails.colDef} */}
+			{/*			rowData={selectedExamItems} */}
+			{/*		/> */}
+			{/*	</div> */}
+			{/* </CustomModal> */}
 			<CustomModal height="100%" open={open} onModalClose={() => onModalClose()}>
 				{/* <PDFViewer width="100%" height="100%" showToolbar> */}
 				{/*	<Document /> */}
@@ -231,4 +282,4 @@ function BillToClinicDoctor() {
 	);
 }
 
-export default BillToClinicDoctor;
+export default PayToClinicDoctor;

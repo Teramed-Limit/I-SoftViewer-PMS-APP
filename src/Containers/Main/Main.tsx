@@ -28,11 +28,13 @@ import { CSSObject, styled, Theme, useTheme } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 
 import WithElementVisibility from '../../HOC/WithElementVisiblity/WithElementVisibility.tsx';
 import { SiteEntity } from '../../interface/site';
+import { atomCodeList } from '../../recoil/atoms/codeList.ts';
 import { atomSite } from '../../recoil/atoms/site';
+import CodeListService from '../../services/CodeListService.ts';
 import EnvService from '../../services/EnvService.ts';
 import { http } from '../../utils/api/api';
 
@@ -217,13 +219,19 @@ function Main() {
 
 	const [siteList, setSiteList] = React.useState<SiteEntity[]>([]);
 	const [site, setSite] = useRecoilState(atomSite);
+	const setCodeListMap = useSetRecoilState(atomCodeList);
 
 	useEffect(() => {
 		http.get<SiteEntity[]>('/site').subscribe((response) => {
 			setSiteList(response);
 			setSite(response[0]);
+			CodeListService.addCodeList('site', response);
+			setCodeListMap((oldCodeListMap) => ({
+				...oldCodeListMap,
+				site: response,
+			}));
 		});
-	}, [setSite]);
+	}, [setCodeListMap, setSite]);
 
 	const onChangeSite = (event) => {
 		const selectedSite = siteList.find((item) => item.siteId === event.target.value);

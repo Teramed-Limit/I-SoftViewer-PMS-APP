@@ -1,5 +1,5 @@
 export interface CodeListMap {
-	[props: string]: CodeList[];
+	[props: string]: any[];
 }
 
 export interface CodeList {
